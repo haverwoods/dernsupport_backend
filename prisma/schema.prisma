@@ -18,4 +18,31 @@ model User {
   username String   @unique
   email    String   @unique
   password String
+  requests Request[]
+} 
+
+model Client {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  email       String       @unique
+  password    String
+  accountType String  
+}
+
+
+// model Repair {
+//   id        Int     @id @default(autoincrement())
+//   date     String
+//   device_name String
+//   description   String
+//   image String
+// }
+model Request {
+  id        Int      @id @default(autoincrement())
+  description String
+  imageUrl   String
+  pickup_date  String? 
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
 }
