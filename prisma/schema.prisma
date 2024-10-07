@@ -29,20 +29,21 @@ model Client {
   accountType String  
 }
 
-
-// model Repair {
-//   id        Int     @id @default(autoincrement())
-//   date     String
-//   device_name String
-//   description   String
-//   image String
-// }
 model Request {
   id        Int      @id @default(autoincrement())
   description String
   imageUrl   String
-  pickup_date  String? 
+  pickupDate  String? 
   userId     Int
+  email String?
   user       User     @relation(fields: [userId], references: [id])
   createdAt  DateTime @default(now())
+}
+
+model product_list{
+  id Int  @id @default(autoincrement())
+  name String
+  catagory String
+  price Int
+  stock Int
 }
