@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const { PrismaClient } = require("@prisma/client");
 const authroutes = require("./routes/auth");
 const requestroute = require("./routes/request")
+const productroutes = require("./routes/product")
 // const middleware = require("./middleware");
 const cors = require('cors');
 
@@ -25,6 +26,7 @@ app.use(cors({
 //routes
 app.use("/api/auth", authroutes);
 app.use("/routes/request" , requestroute);
+app.use('/api', productroutes)
 
 //start server
 app.listen(port, () => {
