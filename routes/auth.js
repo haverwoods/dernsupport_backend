@@ -124,7 +124,7 @@ router.post(
         },
       });
 
-      const payload = { user: { id: client.id , type:'client' } };
+      const payload = { user: { id: client.id , email:client.email, type:'client' } };
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
@@ -165,7 +165,7 @@ router.post(
         return res.status(400).json({ msg: "wrong password" });
       }
 
-      const payload = { user: { id: user.id , type: isclient ? 'client':'admin' } };
+      const payload = { user: { id: user.id , type: isclient ? 'client':'admin', email:user?.email } };
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
@@ -188,27 +188,27 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      let user = await prisma.user.findUnique({ where: { email } });
+      let client = await prisma.client.findUnique({ where: { email } });
       let isclient = false;
       
-      if (!user) {
-        user = await prisma.client.findUnique({where:{email}})
+      if (!client) {
+        client = await prisma.client.findUnique({where:{email}})
         // return res.status(400).json({ msg: "wrong email" });
         isclient = true;
       }
-      if (!user) {        
+      if (!client) {        
         return res.status(400).json({ msg: "wrong email" });       
       }
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(password, client.password);
       if (!isMatch) {
         return res.status(400).json({ msg: "wrong password" });
       }
 
-      const payload = { user: { id: user.id , type: isclient ? 'client':'admin' } };
+      const payload = { client: { id: client.id , type: isclient ? 'client':'admin', email:client?.email } };
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
-      res.json({ token, msg: "Login successful! " , usertype:isclient ? 'client':'admin' });
+      res.json({ token, msg: "Login successful! " , usertype:isclient ? 'client':'admin', });
     } catch (err) {
       console.error(err.message);
       res.status(500).send("Server error");

@@ -1,8 +1,7 @@
-
-const express = require('express');
+const express = require("express");
 const multer = require("multer");
 const { body, validationResult } = require("express-validator");
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -10,29 +9,27 @@ const prisma = new PrismaClient();
 // Configure multer for file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './storage')
+    cb(null, "./storage");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname)
-  }
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
 const upload = multer({ storage: storage });
 
-// Add this new route to handle image uploads
-router.post("/upload", upload.single('image'), (req, res) => {
+// image uplaod route
+router.post("/upload", upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ msg: "No file uploaded" });
     }
-    
-  
+
     const filePath = req.file.path;
-    
-  
+
     res.status(200).json({
       msg: "Image uploaded successfully",
-      filePath: filePath
+      filePath: filePath,
     });
   } catch (error) {
     console.error("Error uploading image: ", error.message);
@@ -40,56 +37,123 @@ router.post("/upload", upload.single('image'), (req, res) => {
   }
 });
 
-// POST endpoint for client to submit a request
+// client post submit a request
+// router.post(
+//   "/request",
+//   upload.single("image"),
+//   [
+//     body("description").not().isEmpty().trim().escape(),
+//     body("clientId").isInt().withMessage("User ID must be an integer"),
+//     body("clientEmail").isEmail().withMessage("email is required"),
+//     body("pickupDate").not().isEmpty().withMessage("Pickup date is required"),
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+
+//     const { description, clientId, clientEmail, pickupDate } = req.body;
+//     // const { description, userId ,  userEmail, pickupDate } = req.body;
+//     const imageUrl = req.file ? req.file.path : null;
+
+
+
+//     try {
+//       // Check if the user exists
+//       const client = await prisma.client.findUnique({
+//         where: { id: parseInt(clientId) },
+//       });
+
+//       if (!client) {
+//         return res.status(404).json({ msg: "User not found" });
+//       }
+
+//       const newRequest = await prisma.request.create({
+//         data: {
+//           description,
+//           imageUrl,
+//           clientId: parseInt(clientId),
+//           clientEmail,
+//           pickupDate,
+//         },
+//       });
+
+//       res.status(201).json(newRequest);
+//     } catch (err) {
+//       console.error("Error creating request: ", err.message);
+//       res.status(500).send("Server error");
+//     }
+//   }
+// );
 router.post(
   "/request",
-  upload.single('image'), 
+  upload.single("image"),
   [
     body("description").not().isEmpty().trim().escape(),
-    body("userId").isInt().withMessage("User ID must be an integer"),
-    // body("userEmail").isEmail().withMessage("Valid email is required"),
-    body("pickupDate").not().isEmpty().withMessage("Pickup date is required")
+    body("clientId").isInt().withMessage("User ID must be an integer"),
+    // body("clientEmail").optional().isEmail().withMessage("email is required"),
+    body("pickupDate").not().isEmpty().withMessage("Pickup date is required"),
   ],
   async (req, res) => {
+    console.log("Received request body:", req.body);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { description, userId ,  pickupDate } = req.body;
-    // const { description, userId ,  userEmail, pickupDate } = req.body;
-    const imageUrl = req.file ? req.file.path : null; 
-   
+    const { description, clientId, pickupDate } = req.body;
+    const imageUrl = req.file ? req.file.path : null;
 
     try {
-      // Check if the user exists
-      const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
-      // const email = await prisma.user.findUnique({ where: { id: parseInt(userEmail) } });
-      if (!user) {
+      const client = await prisma.client.findUnique({
+        where: { id: parseInt(clientId) },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+
+      if (!client) {
         return res.status(404).json({ msg: "User not found" });
       }
+      if (!client.email) {
+        return res.status(400).json({ msg: "Client email not found in database" });
+      }
 
-      // if (user.email !== email) {
-      //   return res.status(400).json({ msg: "Email does not match the user." });
-      // }
-
-    
+      //new request
       const newRequest = await prisma.request.create({
         data: {
           description,
           imageUrl,
-          userId: parseInt(userId),
-          // userEmail,
+          // clientId: parseInt(clientId),
+          client: {connect: {
+              id: parseInt(clientId), // Link the request to an existing client using the clientId
+            },
+          },
+          clientemail: client.email,
           pickupDate,
         },
       });
 
+      console.log("New request created:", newRequest);
       res.status(201).json(newRequest);
     } catch (err) {
-      console.error("Error creating request: ", err.message);
-      res.status(500).send("Server error");
+      console.error("Error creating request: ", err);
+      res.status(500).json({ error: err.message || "Server error" });
     }
   }
 );
+
+
+router.get("/request", async (req, res) => {
+  try {
+    const request = await prisma.request.findMany();
+    res.json(request);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
 
 module.exports = router;

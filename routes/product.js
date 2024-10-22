@@ -93,13 +93,14 @@ router.patch('/products/:id/stock', async (req, res) => {
     }
 })
 
-// Get all products (optional but useful)
+// Get all products
 router.get('/products', async (req, res) => {
     try {
         const products = await prisma.product_list.findMany()
         res.json(products)
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch products' })
+        
     }
 })
 
