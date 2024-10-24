@@ -37,62 +37,13 @@ router.post("/upload", upload.single("image"), (req, res) => {
   }
 });
 
-// client post submit a request
-// router.post(
-//   "/request",
-//   upload.single("image"),
-//   [
-//     body("description").not().isEmpty().trim().escape(),
-//     body("clientId").isInt().withMessage("User ID must be an integer"),
-//     body("clientEmail").isEmail().withMessage("email is required"),
-//     body("pickupDate").not().isEmpty().withMessage("Pickup date is required"),
-//   ],
-//   async (req, res) => {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res.status(400).json({ errors: errors.array() });
-//     }
 
-//     const { description, clientId, clientEmail, pickupDate } = req.body;
-//     // const { description, userId ,  userEmail, pickupDate } = req.body;
-//     const imageUrl = req.file ? req.file.path : null;
-
-
-
-//     try {
-//       // Check if the user exists
-//       const client = await prisma.client.findUnique({
-//         where: { id: parseInt(clientId) },
-//       });
-
-//       if (!client) {
-//         return res.status(404).json({ msg: "User not found" });
-//       }
-
-//       const newRequest = await prisma.request.create({
-//         data: {
-//           description,
-//           imageUrl,
-//           clientId: parseInt(clientId),
-//           clientEmail,
-//           pickupDate,
-//         },
-//       });
-
-//       res.status(201).json(newRequest);
-//     } catch (err) {
-//       console.error("Error creating request: ", err.message);
-//       res.status(500).send("Server error");
-//     }
-//   }
-// );
 router.post(
   "/request",
   upload.single("image"),
   [
     body("description").not().isEmpty().trim().escape(),
     body("clientId").isInt().withMessage("User ID must be an integer"),
-    // body("clientEmail").optional().isEmail().withMessage("email is required"),
     body("pickupDate").not().isEmpty().withMessage("Pickup date is required"),
   ],
   async (req, res) => {
@@ -127,9 +78,8 @@ router.post(
         data: {
           description,
           imageUrl,
-          // clientId: parseInt(clientId),
           client: {connect: {
-              id: parseInt(clientId), // Link the request to an existing client using the clientId
+              id: parseInt(clientId), // request to existing client using the clientId
             },
           },
           clientemail: client.email,

@@ -83,6 +83,7 @@ router.patch('/products/:id/stock', async (req, res) => {
                 id: parseInt(id)
             },
             data: {
+                
                 stock: newStock
             }
         })

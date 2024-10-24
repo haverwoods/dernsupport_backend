@@ -9,12 +9,7 @@ const rateLimit = require("express-rate-limit");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Rate limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100 // limit each IP to 100 requests per windowMs
-// });
-// router.use(limiter);
+
 
 // Middleware to verify JWT token
 const auth = (req, res, next) => {
@@ -218,16 +213,7 @@ router.post(
 
 // Protected route example
 router.get("/me", auth, async (req, res) => {
-  // try {
-  //   const user = await prisma.user.findUnique({
-  //     where: { id: req.user.id },
-  //     select: { id: true, username: true, email: true },
-  //   });
-  //   res.json(user);
-  // } catch (err) {
-  //   console.error(err.message);
-  //   res.status(500).send("Server error");
-  // }
+
   try {
     let user;
     if (req.user.type === 'admin') {
