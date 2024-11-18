@@ -62,6 +62,7 @@ router.patch('/products/:id/stock', async (req, res) => {
             }
         })
 
+        
         if (!product) {
             return res.status(404).json({ error: 'Product not found' })
         }
